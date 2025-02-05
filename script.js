@@ -28,9 +28,24 @@ document.addEventListener("DOMContentLoaded", () => {
     afficherClients();
     document.getElementById("filtreCategorie").addEventListener("change", filtrerClients);
 
-    
- });
+    document.getElementById("btnNouveauClient").addEventListener("click", () => {
+        resetForm();
+        document.getElementById("formClient").onsubmit = enregistrerClient;
+        new bootstrap.Modal(document.getElementById("ajouterClientModal")).show();
+    });
 
+    document.getElementById("formClient").addEventListener("submit", enregistrerClient);
+});
+
+function resetForm() {
+    document.getElementById("nom").value = "";
+    document.getElementById("prenom").value = "";
+    document.getElementById("telephone").value = "";
+    document.getElementById("email").value = "";
+    document.getElementById("adresse").value = "";
+    document.getElementById("categorie").value = "Solvable";
+    document.getElementById("error-message").textContent = "";
+}
 
 function afficherClients(filtre = "all") {
     const tableBody = document.getElementById("tableClients");
@@ -136,3 +151,49 @@ function modifierClient(index) {
     new bootstrap.Modal(document.getElementById("ajouterClientModal")).show();
 }
 
+function enregistrerClient(event) {
+    event.preventDefault();
+    const errorMessage = validerFormulaire();
+    if (errorMessage) {
+        document.getElementById("error-message").textContent = errorMessage;
+        return;
+    }
+
+    const nouveauClient = {
+        nom: document.getElementById("nom").value,
+        prenom: document.getElementById("prenom").value,
+        telephone: document.getElementById("telephone").value,
+        email: document.getElementById("email").value,
+        adresse: document.getElementById("adresse").value,
+        categorie: document.getElementById("categorie").value,
+        dettes: []
+    };
+
+    clients.push(nouveauClient);
+    afficherClients();
+    resetForm();
+    bootstrap.Modal.getInstance(document.getElementById("ajouterClientModal")).hide();
+}
+
+function validerFormulaire(telephoneExclu = "", emailExclu = "") {
+    const nom = document.getElementById("nom").value.trim();
+    const prenom = document.getElementById("prenom").value.trim();
+    const telephone = document.getElementById("telephone").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const adresse = document.getElementById("adresse").value.trim();
+    const categorie = document.getElementById("categorie").value;
+
+    if (!nom || !prenom || !telephone || !email || !adresse || !categorie) {
+        return "Tous les champs sont obligatoires.";
+    }
+
+    if (clients.some(client => client.telephone === telephone && telephone !== telephoneExclu)) {
+        return "Le téléphone est déjà utilisé.";
+    }
+
+    if (clients.some(client => client.email === email && email !== emailExclu)) {
+        return "L'email est déjà utilisé.";
+    }
+
+    return "";
+}
